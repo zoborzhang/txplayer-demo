@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>统一播放器V3</title>
+<style>
+.mod_player, .mod_player_1{
+  width: 100%;
+  height: 100%;
+}
+</style>
+
+</head>
+<body>
+<script src="../libs/jquery.min.js"></script>
+<script src="../js/txplayer.js" type="text/javascript" ></script>
+<script>
+var $ = jQuery;
+var Console = {
+  log: function(param){
+    console.log('%c'+ param, 'background:green;color:white;');
+  }
+};
+$(document).on('TxPlayerJSBrageReady', function(){
+  Console.log('TxPlayerJSBrageReady');
+});
+</script>
+
+<script>
+Txplayer.dataset.jsBasePath = '../js/';
+Txplayer.dataset.debug = true;
+
+Txplayer.dataset.H5PlayerStyleUrl = {
+  ipadh5: '../css/txp_pad.css',
+  html5hd: '../css/txp_desktop.css'
+}
+
+
+var vid = Txplayer.util.getUrlParam('vid');
+var autoplay = Txplayer.util.getUrlParam('autoplay');
+var width = Txplayer.util.getUrlParam('width');
+var height = Txplayer.util.getUrlParam('height');
+var type = Txplayer.util.getUrlParam('type');
+var connectionplay = Txplayer.util.getUrlParam('connectionplay');
+var volume = Txplayer.util.getUrlParam('volume');
+volume = volume===''?100: parseInt(volume);
+var charge = Txplayer.util.getUrlParam('charge');
+var showtogglesidebar = Txplayer.util.getUrlParam('showtogglesidebar');
+var showlogo = Txplayer.util.getUrlParam('showlogo');
+var starttime = Txplayer.util.getUrlParam('starttime');
+starttime = starttime||0;
+var playerConfig = {};
+
+(function(){
+  if (!vid) return;
+  autoplay = autoplay==='true' || autoplay==='' ? true : false;
+  width = width ? width : '100%';
+  height = height ? height : '100%';
+  type = (type && type.toLowerCase());
+  if (type==='html5') type='';
+  var vids = vid.split('|');
+  var playerName = 'player';
+  for(var i=0, len= vids.length;i<len;i++){
+    playerName = 'player';
+    if(len>1){
+      Txplayer.$('<div id="mod_player_'+(i+1)+'" class="mod_player"></div>').appendTo(document.body);
+    }else{
+      Txplayer.$('<div id="mod_player_'+(i+1)+'" class="mod_player_1"></div>').appendTo(document.body);
+    }
+    if (i>0) playerName+='_'+(i+1);
+    if (i===1){
+      type = 'flash';
+    }
+    playerConfig = {
+      containerId: 'mod_player_'+(i+1),
+      vid: vids[i],
+      cid: 'o9byfpelxel2djo',
+      width: width,
+      height: height,
+      videoType: 'vod',
+      playerType: type,
+      autoplay: autoplay,
+      volume: volume,
+      nextVid: true,
+      useComboService: false,
+      showBullet: true,
+      showBrowserFullScreen: true,
+      poster: 'http://img1.gtimg.com/news/pics/hv1/165/95/2056/133715790.jpg',
+      getNextVid: getNextVid,
+      showOpenVIPGuide: showOpenVIPGuide,
+      followHandler: followHandler,
+      getUserType: getUserType,
+      // connectionPlayTime: 50,
+      showToggleSideBar: true,
+      useFlashMiniSkin: false,
+      showBulletInput: true,
+      showFlashBulletInput: true,
+      brandSubscribeHandler: brandSubscribeHandler,
+      showTitle: false
+    };
+    if (typeof showlogo==='string' && showlogo) playerConfig.showLogo = showlogo==='true'?true:false;
+    if (typeof showtogglesidebar==='string' && showtogglesidebar) playerConfig.showToggleSideBar = showtogglesidebar==='true'?true:false;
+    if (typeof connectionplay==='string' && connectionplay) playerConfig.useConnectionPlay = connectionplay==='true'?true:false;
+    if (typeof charge==='string' && charge) playerConfig.isNeedPay = charge==='true'?true:false;
+    if (starttime) playerConfig.playStartTime = starttime;
+
+    window[playerName] = new Txplayer(playerConfig);
+    // window[playerName].on('timeupdate', function(){
+    //   console.info('timeupdate', $.now());
+    // });
+    window[playerName].on('playStateChange', function(data){
+      console.log('playStateChange', data);
+      if (data.state===1){
+        window.player && player.autoResize();
+      }
+    });
+    window[playerName].on('adStart', function(state){
+      console.log('广告开始');
+    });
+    window[playerName].on('adEnd', function(state){
+      console.log('广告结束');
+    });
+    window[playerName].on('volumeChange', function(volume){
+      console.log('音量变化了', volume);
+    });
+    window[playerName].on('clickCloseLight', function(isClose){
+      console.log('关/开灯', isClose);
+    });
+    window[playerName].on('beforePlayNext', function(vid){
+      console.log('准备播放下一个视频', vid);
+    });
+    window[playerName].on('toggleSideBarBtnClick', function(action){
+      console.log('折叠侧边栏', action);
+    });
+    window[playerName].on('browserFullscreenChange', function(isFullSceen){
+      console.log('浏览器全屏', isFullSceen);
+    });
+    window[playerName].on('bulletReady', function(data){
+      console.log('弹幕已初始化', data);
+    });
+    window[playerName].on('showUIVipGuide', function(isFullSceen){
+      alert('显示好莱坞付费浮层')
+    });
+    window[playerName].on('showLogin', function(isFullSceen){
+      console.log('显示登录浮层');
+    });
+  }
+})();
+
+player.on('ready', function(){
+  Txplayer.util.showInfo('player ready',Txplayer.util.dateFormat());
+  $('video').css('display','block')
+});
+
+function showOpenVIPGuide(){
+  alert('弹出开通好莱坞会员浮层')
+}
+
+function followHandler(){
+  player.trigger('followStateChange', {
+    state: true
+  });
+}
+
+
+function getUserType(){
+  return 2;
+}
+
+var vidsIndex = -1;
+function getNextVid(){
+  var vids = [{"title":"执法查出“毒包子”添加剂里含铝多","vid":"t0183xqsfgg"},{"title":"狗剩子送信，笑傻了！","vid":"t0188c654vy"}];
+  vidsIndex++;
+  if (vidsIndex>=vids.length) vidsIndex = 0;
+  var data = {
+    vid: vids[vidsIndex].vid,
+    nextVid: true
+  };
+  if (vidsIndex===1){
+    data.nextVid  = false;
+  }
+  return data;
+}
+
+function brandSubscribeHandler(data, isFollow){
+  debugger
+}
+
+Txplayer.showReportLog=function(data){
+  var showLog = function(info, data){
+    if (!window.console) return;
+    if (!window.console.log) return;
+    if (typeof data ==='object') data = JSON.stringify(data);
+    Txplayer.util.log('%c'+info+': %c \t\t'+data,'background: blue;color:#fff;', 'color:green;');
+  };
+  var title = '';
+  if (data && data.step){
+    switch(data.step){
+      case 3:
+        title = '统计视频播放次数，播放广告前上报';
+        break;
+      case 4:
+        title = '统计视频播放次数，getinfo完成'
+        break;
+      case 5:
+        title = '统计播放时长';
+        break;
+      case 6:
+        title = '统计首次loading时长';
+        break;
+      case 7:
+        title = '第一则loading广告播放时候';
+        break;
+      case 70:
+        title = '第一个前贴广告缓冲完成上报下载平均速度';
+        break;
+
+      // 缓冲开始
+      case 30:
+        title = '首段首次缓冲耗时 <$time>';
+        break;
+      case 31:
+        title = '首段再次缓冲耗时 <$time>';
+        break;
+      case 32:
+        title = '首段缓冲次数上报，下载完成';
+        break;
+      case 50:
+        title = '非首段首次缓冲耗时 <$time>';
+        break;
+      case 51:
+        title = '非首段再次缓冲耗时 <$time>';
+        break;
+      case 52:
+        title = '非首都安缓冲次数，下载完成';
+        break;
+      case 60:
+        title = '拖拽文件缓冲完成';
+        break;
+      // 缓冲结束
+
+      case 35:
+        title = 'loading广告切正片耗时 <$time>';
+        break;
+      case 55:
+        title = '正片切片切换耗时 <$time>';
+        break;
+      case 100:
+        title = '切换清晰度耗时 <$time>';
+        break;
+    }
+    title = title.replace('$time', data.val);
+  }
+  title = '[step='+data.step+'] ' + title;
+  showLog(title,'');
+  // console.log(data);
+}
+
+</script>
+</body>
+</html>
